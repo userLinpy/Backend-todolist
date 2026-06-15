@@ -1,0 +1,57 @@
+package com.ghibli.todolistbackend.controller;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.ghibli.todolistbackend.model.Tache;
+import com.ghibli.todolistbackend.repository.TableauRepository;
+import com.ghibli.todolistbackend.repository.TacheRepository;
+
+
+@RestController // Dit à Spring Boot que cette classe va répondre à des requêtes sur Internet
+@RequestMapping("/api") // Permet de standardisé l'adresse par /api/...
+public class TacheController {
+
+    private TacheRepository tacheRepository;
+    private final com.ghibli.todolistbackend.repository.TableauRepository tableauRepository;
+
+    public TacheController(TacheRepository tacheRepository, TableauRepository tableauRepository) {
+        this.tacheRepository = tacheRepository;
+        this.tableauRepository = tableauRepository; 
+    }
+
+    @PostMapping("/tableau/{tableauId}/tache")
+    public ResponseEntity<Tache> createTachePourTableau(@PathVariable Long tableauId, @RequestBody Tache nouvelleTache) {
+        return tableauRepository.findById(tableauId).map(tableau -> {
+            nouvelleTache.setTableau(tableau); // Assigne le tableau à la tâche
+            Tache savedTache = tacheRepository.save(nouvelleTache);
+            return ResponseEntity.ok(savedTache);
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // Lire toutes les tâches (Méthode GET)
+    @GetMapping("/tache")
+    public List<Tache> getAllTaches() {
+        return tacheRepository.findAll();
+    }
+
+    // Créer une nouvelle tâche (Méthode POST)
+    @PostMapping("/tache")
+    public Tache createTache(@RequestBody Tache nouvelleTache) {
+        // @RequestBody dit à Spring : "Prends le texte JSON envoyé par le client et transforme-le en objet Tache"
+        return tacheRepository.save(nouvelleTache);
+    }
+
+    // Nouvelle route pour récupérer les tâches d'UN SEUL tableau spécifique
+    @GetMapping("/tableau/{tableauId}/taches")
+    public List<Tache> getTachesParTableau(@PathVariable Long tableauId) {
+        // Le robot magasinier va chercher uniquement les tâches liées à cet ID de tableau
+        return tacheRepository.findByTableauId(tableauId);
+    }
+}
