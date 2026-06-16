@@ -58,8 +58,8 @@ public class AuthController {
         tableauPerso.setUtilisateurs(new java.util.ArrayList<>(java.util.List.of(nouvelUtilisateur)));
         tableauRepository.save(tableauPerso); // Sauvegardé en BDD !
 
-        // 3. Envoi du mail
-        authService.envoyerCodeVerificationInscription(nouvelUtilisateur);
+        // 3. Envoi du mail (dans un thread séparé pour ne pas bloquer la réponse)
+        new Thread(() -> authService.envoyerCodeVerificationInscription(nouvelUtilisateur)).start();
 
         return ResponseEntity.ok("Inscription réussie ! Un code de vérification a été envoyé.");
     }
