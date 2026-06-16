@@ -37,6 +37,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Erreur : Le mot de passe doit contenir au moins 5 caractères !");
         }
 
+        if (utilisateurRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Erreur : Cet e-mail est déjà utilisé.");
+        }
+
+        if (utilisateurRepository.findByUsername(request.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("Erreur : Ce nom d'utilisateur est déjà pris.");
+        }
+
         // 1. Sauvegarde de l'utilisateur
         Utilisateur nouvelUtilisateur = new Utilisateur(
             request.getUsername(),
