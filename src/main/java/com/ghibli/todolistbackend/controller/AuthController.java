@@ -64,21 +64,6 @@ public class AuthController {
         return ResponseEntity.ok("Inscription réussie ! Un code de vérification a été envoyé.");
     }
 
-    // Confirmer l'inscription avec le code reçu par mail
-    @PostMapping("/verifier-compte")
-    public ResponseEntity<String> verifierCompte(@RequestBody Map<String, String> request) {
-        String email = request.get("email"); // 🌟 Il faut envoyer l'email depuis JavaFX !
-        String code = request.get("code");
-        
-        // On appelle la méthode qui vérifie l'email ET le code
-        boolean valide = authService.validerCompte(email, code); 
-        
-        if (valide) {
-            return ResponseEntity.ok("Votre compte a été activé avec succès !");
-        }
-        return ResponseEntity.badRequest().body("Erreur : Code invalide ou expiré.");
-    }
-
     // Connexion (Utilise l'EMAIL comme identifiant de connexion)
     @PostMapping("/connexion")
     public ResponseEntity<?> connecter(@RequestBody LoginRequest request) {
@@ -93,7 +78,7 @@ public class AuthController {
 
             // Étape 2 : Vérifier si le compte est actif
             if (!utilisateur.isActif()) {
-                return ResponseEntity.badRequest().body("Erreur : Compte non activé. Vérifie tes e-mails !");
+                return ResponseEntity.status(403).body("Erreur : Compte non activé. Vérifie tes e-mails !");
             }
 
             // 🌟 Étape 3 : LA CORRECTION MAGIQUE ICI 🌟

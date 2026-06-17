@@ -37,19 +37,6 @@ public class TacheController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Lire toutes les tâches (Méthode GET)
-    @GetMapping("/tache")
-    public List<Tache> getAllTaches() {
-        return tacheRepository.findAll();
-    }
-
-    // Créer une nouvelle tâche (Méthode POST)
-    @PostMapping("/tache")
-    public Tache createTache(@RequestBody Tache nouvelleTache) {
-        // @RequestBody dit à Spring : "Prends le texte JSON envoyé par le client et transforme-le en objet Tache"
-        return tacheRepository.save(nouvelleTache);
-    }
-
     // Nouvelle route pour récupérer les tâches d'UN SEUL tableau spécifique
     @GetMapping("/tableau/{tableauId}/taches")
     public List<Tache> getTachesParTableau(@PathVariable Long tableauId) {
