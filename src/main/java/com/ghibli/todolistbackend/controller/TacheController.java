@@ -2,6 +2,7 @@ package com.ghibli.todolistbackend.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,5 +54,15 @@ public class TacheController {
     public List<Tache> getTachesParTableau(@PathVariable Long tableauId) {
         // Le robot magasinier va chercher uniquement les tâches liées à cet ID de tableau
         return tacheRepository.findByTableauId(tableauId);
+    }
+
+    // Supprimer une tâche par son ID
+    @DeleteMapping("/tache/{id}")
+    public ResponseEntity<Void> supprimerTache(@PathVariable Long id) {
+        if (!tacheRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        tacheRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }
