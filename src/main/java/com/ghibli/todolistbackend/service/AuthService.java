@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
@@ -23,8 +24,11 @@ public class AuthService {
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${brevo.api.key}")
-    private String brevoApiKey;
+    @Value("${mailjet.api.key}")
+    private String mailjetApiKey;
+
+    @Value("${mailjet.secret.key}")
+    private String mailjetSecretKey;
 
     @Value("${mail.from}")
     private String mailFrom;
@@ -117,25 +121,30 @@ public class AuthService {
     private void envoyerEmail(String destinataire, String sujet, String htmlContent) {
         try {
             String body = "{"
-                + "\"sender\":{\"name\":\"Totoro ToDoList\",\"email\":\"" + mailFrom + "\"},"
-                + "\"to\":[{\"email\":\"" + destinataire + "\"}],"
-                + "\"subject\":\"" + sujet + "\","
-                + "\"htmlContent\":\"" + htmlContent.replace("\"", "\\\"") + "\""
-                + "}";
+                + "\"Messages\":[{"
+                + "\"From\":{\"Email\":\"" + mailFrom + "\",\"Name\":\"Totoro ToDoList\"},"
+                + "\"To\":[{\"Email\":\"" + destinataire + "\"}],"
+                + "\"Subject\":\"" + sujet + "\","
+                + "\"HTMLPart\":\"" + htmlContent.replace("\"", "\\\"") + "\""
+                + "}]}";
+
+            String credentials = Base64.getEncoder().encodeToString(
+                (mailjetApiKey + ":" + mailjetSecretKey).getBytes()
+            );
 
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
+                .uri(URI.create("https://api.mailjet.com/v3.1/send"))
                 .header("Content-Type", "application/json")
-                .header("api-key", brevoApiKey)
+                .header("Authorization", "Basic " + credentials)
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 201) {
+            if (response.statusCode() == 200) {
                 System.out.println("📧 E-mail envoyé avec succès à : " + destinataire);
             } else {
-                System.err.println("❌ Erreur Brevo API (" + response.statusCode() + ") : " + response.body());
+                System.err.println("❌ Erreur Mailjet API (" + response.statusCode() + ") : " + response.body());
                 System.out.println("CODE DE SECOURS (Console) pour [" + destinataire + "] -> " + sujet);
             }
         } catch (Exception e) {
