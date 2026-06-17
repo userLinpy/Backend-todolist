@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +55,19 @@ public class TacheController {
     public List<Tache> getTachesParTableau(@PathVariable Long tableauId) {
         // Le robot magasinier va chercher uniquement les tâches liées à cet ID de tableau
         return tacheRepository.findByTableauId(tableauId);
+    }
+
+    // Modifier une tâche existante
+    @PutMapping("/tache/{id}")
+    public ResponseEntity<Tache> modifierTache(@PathVariable Long id, @RequestBody Tache tacheModifiee) {
+        return tacheRepository.findById(id).map(tache -> {
+            tache.setTitre(tacheModifiee.getTitre());
+            tache.setDescription(tacheModifiee.getDescription());
+            tache.setDateFinTache(tacheModifiee.getDateFinTache());
+            tache.setPriorite(tacheModifiee.getPriorite());
+            tache.setAvancement(tacheModifiee.getAvancement());
+            return ResponseEntity.ok(tacheRepository.save(tache));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     // Supprimer une tâche par son ID
